@@ -240,6 +240,3 @@ This automation is perfect for:
 - Enterprises needing scalable support automation
 - Teams looking to reduce manual classification work
 
----
-
-**Built with ❤️ using n8n, Gemini AI, and Google Workspace**
