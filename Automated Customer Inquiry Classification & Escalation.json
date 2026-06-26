@@ -1,0 +1,518 @@
+{
+  "name": "Automated Customer Inquiry Classification & Escalation",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "1NsV87WMhq_IS9cNyxFeg8UjaLf8Ul3fD7KDA9KH5aPE",
+          "mode": "list",
+          "cachedResultName": "SkinCare Customer Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1NsV87WMhq_IS9cNyxFeg8UjaLf8Ul3fD7KDA9KH5aPE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1885716214,
+          "mode": "list",
+          "cachedResultName": "SkinCare Customer Data - Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1NsV87WMhq_IS9cNyxFeg8UjaLf8Ul3fD7KDA9KH5aPE/edit#gid=1885716214"
+        },
+        "event": "rowAdded",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        -992,
+        -128
+      ],
+      "id": "8929846f-2b47-4734-bc4c-30cd8ff145d4",
+      "name": "Google Sheets Trigger",
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "U4D7okMJtVez354z",
+          "name": "Google Sheets Trigger OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Classify the customer message into one category:\n\n* Product Question → Sales\n* Order Issue → Operations\n* Refund Request → Finance\n* Complaint → Manager\n\nReturn only valid JSON:\n\n{\n\"category\": \"\",\n\"department\": \"\",\n\"summary\": \"\"\n}\nconst parsed = JSON.parse($json.output);\n\nreturn [{\n  json: parsed\n}];\n\nCustomer Message:\n{{ $json.Message }}\n\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -768,
+        -128
+      ],
+      "id": "cc59b675-19a6-4fca-be03-de29ef6304ae",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-3.5-turbo",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -688,
+        96
+      ],
+      "id": "3e38aa5c-77ce-4795-96c3-24ae929742d0",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "OD7wwsAf9PokefAe",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1QxZnEsWYvyNmo2riSjf43mVYO0yKemCCq-dKwgq0rQc",
+          "mode": "list",
+          "cachedResultName": "SkinCare Customer Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1QxZnEsWYvyNmo2riSjf43mVYO0yKemCCq-dKwgq0rQc/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1QxZnEsWYvyNmo2riSjf43mVYO0yKemCCq-dKwgq0rQc/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Customer ID": "={{ $('Google Sheets Trigger').item.json[\"Customer ID\"] }}",
+            "Customer Name": "={{ $('Google Sheets Trigger').item.json[\"Customer Name\"] }}",
+            "Customer Email": "={{ $('Google Sheets Trigger').item.json[\"Customer Email\"] }}",
+            "Message": "={{ $('Google Sheets Trigger').item.json.Message }}",
+            "Category": "={{ JSON.parse($json.output).category }}",
+            "Dept": "={{ JSON.parse($json.output).department }}",
+            "Summary": "={{ JSON.parse($json.output).summary }}"
+          },
+          "matchingColumns": [
+            "Customer ID"
+          ],
+          "schema": [
+            {
+              "id": "Customer ID",
+              "displayName": "Customer ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Customer Name",
+              "displayName": "Customer Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Customer Email",
+              "displayName": "Customer Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Dept",
+              "displayName": "Dept",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -416,
+        -128
+      ],
+      "id": "dd1c0f66-dd34-413b-b57f-88b6fb28cafe",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "DkLcy5TOK1iXkBAo",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0BE6EVTV9N",
+          "mode": "list",
+          "cachedResultName": "finance"
+        },
+        "text": "=🚨 *New {{ $json.Category }}* 🚨\n\n*Customer:* {{ $json['Customer Name'] }}\n*Email:* {{ $json['Customer Email'] }}\n\n*AI Summary:* \n{{ $json.Summary }}\n\n*Original Message:* \n> {{ $json.Message }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        32,
+        -416
+      ],
+      "id": "11e98182-1fb1-4bc2-ba69-0d306e534f30",
+      "name": "Send a message to finance dept",
+      "webhookId": "221cb226-6737-43b1-8f70-44edd0535d40",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "GKERW76hDrEIBUaE",
+          "name": "Slack OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0BDFRH15K6",
+          "mode": "list",
+          "cachedResultName": "manager"
+        },
+        "text": "=🚨 *New {{ $json.Category }}* 🚨\n\n*Customer:* {{ $json['Customer Name'] }}\n*Email:* {{ $json['Customer Email'] }}\n\n*AI Summary:* \n{{ $json.Summary }}\n\n*Original Message:* \n> {{ $json.Message }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        32,
+        -224
+      ],
+      "id": "d14c2c41-fb3b-46d2-ba33-e4fcf1290f1a",
+      "name": "Send a message to manager",
+      "webhookId": "221cb226-6737-43b1-8f70-44edd0535d40",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "GKERW76hDrEIBUaE",
+          "name": "Slack OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0BDFRTBPEY",
+          "mode": "list",
+          "cachedResultName": "sales"
+        },
+        "text": "=🚨 *New {{ $json.Category }}* 🚨\n\n*Customer:* {{ $json['Customer Name'] }}\n*Email:* {{ $json['Customer Email'] }}\n\n*AI Summary:* \n{{ $json.Summary }}\n\n*Original Message:* \n> {{ $json.Message }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        32,
+        -32
+      ],
+      "id": "47b895b9-da1f-4f3f-86a8-cd19f1c733c4",
+      "name": "Send a message to sales dept",
+      "webhookId": "221cb226-6737-43b1-8f70-44edd0535d40",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "GKERW76hDrEIBUaE",
+          "name": "Slack OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0BD5S0ABS7",
+          "mode": "list",
+          "cachedResultName": "operations"
+        },
+        "text": "=🚨 *New {{ $json.Category }}* 🚨\n\n*Customer:* {{ $json['Customer Name'] }}\n*Email:* {{ $json['Customer Email'] }}\n\n*AI Summary:* \n{{ $json.Summary }}\n\n*Original Message:* \n> {{ $json.Message }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        32,
+        160
+      ],
+      "id": "20cb150f-05d1-46af-9331-25741eb2849c",
+      "name": "Send a message to operartions dept",
+      "webhookId": "221cb226-6737-43b1-8f70-44edd0535d40",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "GKERW76hDrEIBUaE",
+          "name": "Slack OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.Dept }}",
+                    "rightValue": "Manager",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "6a9ae48c-ae23-4ee9-8e33-3649c96cd4a0"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "c56e5436-7108-40b5-a95b-e068b2ff0430",
+                    "leftValue": "={{ $json.Dept }}",
+                    "rightValue": "Sales",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "67e6ad65-6793-4cb3-887f-306220315efe",
+                    "leftValue": "={{ $json.Dept }}",
+                    "rightValue": "Operations",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "c0d63288-23b2-4790-ada0-261cf81c920a",
+                    "leftValue": "={{ $json.Dept }}",
+                    "rightValue": "Finance",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -192,
+        -160
+      ],
+      "id": "ef134ff6-56ed-44ae-b03f-b488ee3cd2ed",
+      "name": "Switch between depts"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Sheets Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Switch between depts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch between depts": {
+      "main": [
+        [
+          {
+            "node": "Send a message to finance dept",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message to manager",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message to sales dept",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message to operartions dept",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "793baa33-dd66-4373-a818-034d344474e5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5ae4401f7acc14895f003b35932ec8cfea2a4688abc1bafddf1a880f4c390ff8"
+  },
+  "nodeGroups": [],
+  "id": "z2OEzpEmEUNL2Yh8",
+  "tags": []
+}
